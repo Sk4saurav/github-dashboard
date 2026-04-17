@@ -822,11 +822,11 @@
         </div>
       </div>
 
-      <!-- Recent Activity -->
+      <!-- System Logs (Rebranded from Activity) -->
       <div class="card fade-in">
         <div class="card__header">
-          <span class="card__title">⚡ Recent Activity</span>
-          <a href="#" class="link" style="font-size:12px">View all →</a>
+          <span class="card__title">📟 System Operations Log</span>
+          <span class="badge badge--purple">LIVE_FEED</span>
         </div>
         <div class="activity-feed" id="activityFeed"></div>
       </div>
@@ -853,9 +853,9 @@
     <!-- ========== RIGHT SIDEBAR ========== -->
     <aside class="sidebar-right">
 
-      <!-- CI/CD Status -->
+      <!-- Node Health (Rebranded from CI/CD) -->
       <div class="card fade-in">
-        <div class="card__header"><span class="card__title">🚀 CI / CD Status</span></div>
+        <div class="card__header"><span class="card__title">📡 Network Node Health</span></div>
         <div id="ciList"></div>
       </div>
 
@@ -930,41 +930,26 @@ const repos = [
   { name: "resume",             desc: "Professional portfolio & resume site with animated UI and project showcase.", lang: "HTML",       langClass: "lang-html",stars: 9,  forks: 2,  vis: "public",  progress: 100 },
 ];
 
+/* ============================================================
+   DATA — LOGS
+============================================================ */
 const activities = [
-  { icon: "🔀", type: "merge",  title: 'Merged PR <a href="#" class="link">#142 — Add autonomous hiring workflow</a> in <a href="#" class="link">agent-orchestrator</a>',   meta: "2 hours ago", time: "2h" },
-  { icon: "📤", type: "push",   title: 'Pushed 3 commits to <a href="#" class="link">bizpulse/main</a> — Refactor analysis pipeline',                                        meta: "4 hours ago", time: "4h" },
-  { icon: "⭐", type: "star",   title: 'Starred <a href="#" class="link">microsoft/playwright</a>',                                                                           meta: "6 hours ago", time: "6h" },
-  { icon: "🐛", type: "issue",  title: 'Opened issue <a href="#" class="link">#88 — JWT refresh logic race condition</a> in <a href="#" class="link">cyber-agent</a>',        meta: "Yesterday",   time: "1d" },
-  { icon: "🔀", type: "pr",     title: 'Opened PR <a href="#" class="link">#23 — Isometric contribution graph widget</a>',                                                    meta: "Yesterday",   time: "1d" },
-  { icon: "🍴", type: "fork",   title: 'Forked <a href="#" class="link">langchain-ai/langchain</a>',                                                                          meta: "2 days ago",  time: "2d" },
-  { icon: "👀", type: "review", title: 'Reviewed PR <a href="#" class="link">#17 — Security hardening in BizPulse worker</a>',                                               meta: "3 days ago",  time: "3d" },
-  { icon: "📤", type: "push",   title: 'Pushed 7 commits to <a href="#" class="link">alarm-clock-verilog/main</a> — Moore FSM complete',                                      meta: "4 days ago",  time: "4d" },
+  { icon: "🛡️", type: "merge",  title: 'Firewall Policy Updated: <span style="color:var(--accent-green)">ENFORCE_ALL</span>',   meta: "2 hours ago", time: "2h" },
+  { icon: "📡", type: "push",   title: 'Signal scan complete on <span style="color:var(--accent-blue)">alpha-node-09</span>',                                        meta: "4 hours ago", time: "4h" },
+  { icon: "🔑", type: "star",   title: 'Credential Rotation: <span style="color:var(--accent-purple)">RSA-4096</span> enforced',                                            meta: "6 hours ago", time: "6h" },
+  { icon: "🚨", type: "issue",  title: 'Anomaly Detected: <span style="color:var(--accent-red)">Unauthorized API Handshake</span>',        meta: "Yesterday",   time: "1d" },
+  { icon: "⚡", type: "pr",     title: 'Optimization: Latency reduced on <span style="color:var(--accent-cyan)">CyTrack_Core</span>',                                                    meta: "Yesterday",   time: "1d" },
 ];
 
-const pulls = [
-  { title: "#142 Add autonomous hiring workflow",         status: "merged", label: "merged", meta: "agent-orchestrator · 2h ago" },
-  { title: "#23 Isometric contribution graph widget",     status: "open",   label: "review", meta: "github-dashboard · 1d ago" },
-  { title: "#18 Fix JWT refresh race condition",          status: "open",   label: "bug",    meta: "cyber-agent · 2d ago" },
-  { title: "#11 AI report PDF template redesign",         status: "open",   label: "feat",   meta: "bizpulse · 3d ago" },
-  { title: "#8 Add snooze & multi-alarm RTL slots",       status: "merged", label: "merged", meta: "alarm-clock-verilog · 4d ago" },
-  { title: "#3 Initial NEXUS pentest framework",          status: "open",   label: "feat",   meta: "cyber-agent-py · 5d ago" },
-];
-
-const languages = [
-  { name: "TypeScript", pct: 42, color: "#3178c6" },
-  { name: "Python",     pct: 22, color: "#3572A5" },
-  { name: "JavaScript", pct: 18, color: "#f7df1e" },
-  { name: "Verilog",    pct:  8, color: "#b2b7f8" },
-  { name: "HTML/CSS",   pct:  7, color: "#e34c26" },
-  { name: "Other",      pct:  3, color: "#8b949e" },
-];
-
+/* ============================================================
+   DATA — NODES
+============================================================ */
 const ciBuilds = [
-  { name: "agent-orchestrator",   branch: "main",   status: "pass", dur: "2m 14s" },
-  { name: "bizpulse",             branch: "main",   status: "pass", dur: "1m 48s" },
-  { name: "cyber-agent",          branch: "feature/jwt-fix", status: "run", dur: "Running…" },
-  { name: "alarm-clock-verilog",  branch: "main",   status: "pass", dur: "0m 52s" },
-  { name: "cyber-agent-py",       branch: "dev",    status: "fail", dur: "3m 01s" },
+  { name: "RECON_KERNEL_01",   branch: "Sk4saurav",   status: "pass", dur: "ONLINE" },
+  { name: "FUZZER_MODULE",     branch: "Sk4saurav",   status: "pass", dur: "IDLE" },
+  { name: "EXFIL_PIPELINE",    branch: "Sk4saurav", status: "run", dur: "ACTIVE" },
+  { name: "DNS_MAPPER",        branch: "Sk4saurav",   status: "pass", dur: "ONLINE" },
+  { name: "PROXY_SHROUD",      branch: "Sk4saurav",    status: "fail", dur: "OFFLINE" },
 ];
 
 const trending = [
