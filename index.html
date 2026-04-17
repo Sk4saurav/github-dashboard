@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub Dashboard Pro — Saurav</title>
+  <meta name="description" content="A stunning professional GitHub dashboard with real-time stats, contribution insights, and repository analytics." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ============================================================
+       DESIGN TOKENS
+    ============================================================ */
+    :root {
+      --bg-base:        #090d13;
+      --bg-layer1:      #0d1117;
+      --bg-layer2:      #161b22;
+      --bg-layer3:      #1c2128;
+      --glass:          rgba(255,255,255,0.04);
+      --glass-border:   rgba(255,255,255,0.08);
+      --glass-hover:    rgba(255,255,255,0.07);
+
+      --accent-purple:  #8b5cf6;
+      --accent-blue:    #3b82f6;
+      --accent-cyan:    #06b6d4;
+      --accent-green:   #22c55e;
+      --accent-orange:  #f97316;
+      --accent-pink:    #ec4899;
+      --accent-yellow:  #eab308;
+      --accent-red:     #ef4444;
+
+      --text-primary:   #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted:     #484f58;
+
+      --radius-sm:  6px;
+      --radius-md:  12px;
+      --radius-lg:  18px;
+      --radius-xl:  24px;
+
+      --shadow-glow-purple: 0 0 30px rgba(139,92,246,0.18);
+      --shadow-glow-blue:   0 0 30px rgba(59,130,246,0.18);
+      --shadow-card:        0 4px 24px rgba(0,0,0,0.4);
+
+      --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ============================================================
+       AURORA BACKGROUND
+    ============================================================ */
+    .aurora {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    }
+    .aurora__blob {
+      position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.18;
+      animation: drift 18s ease-in-out infinite alternate;
+    }
+    .aurora__blob:nth-child(1) {
+      width: 600px; height: 600px; background: var(--accent-purple);
+      top: -200px; left: -100px; animation-duration: 20s;
+    }
+    .aurora__blob:nth-child(2) {
+      width: 500px; height: 500px; background: var(--accent-blue);
+      top: 40%; right: -150px; animation-duration: 15s; animation-direction: alternate-reverse;
+    }
+    .aurora__blob:nth-child(3) {
+      width: 400px; height: 400px; background: var(--accent-cyan);
+      bottom: -100px; left: 30%; animation-duration: 22s;
+    }
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(40px, 30px) scale(1.1); }
+    }
+
+    /* ============================================================
+       LAYOUT
+    ============================================================ */
+    .app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ============================================================
+       TOP NAV
+    ============================================================ */
+    .topnav {
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 28px; height: 60px;
+      background: rgba(9,13,19,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topnav__logo {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 15px; color: var(--text-primary);
+      text-decoration: none;
+    }
+    .topnav__logo svg { color: var(--accent-purple); }
+    .topnav__search {
+      flex: 1; max-width: 380px;
+      display: flex; align-items: center; gap: 8px;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: 8px; padding: 0 12px; height: 36px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .topnav__search:focus-within {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.15);
+    }
+    .topnav__search input {
+      background: none; border: none; outline: none;
+      color: var(--text-primary); font-size: 13px; font-family: inherit; width: 100%;
+    }
+    .topnav__search input::placeholder { color: var(--text-muted); }
+    .topnav__tabs {
+      display: flex; align-items: center; gap: 4px; margin-left: 8px;
+    }
+    .topnav__tab {
+      padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); cursor: pointer; border: none; background: none;
+      transition: all var(--transition);
+    }
+    .topnav__tab:hover { color: var(--text-primary); background: var(--glass); }
+    .topnav__tab.active { color: var(--accent-purple); background: rgba(139,92,246,0.12); }
+    .topnav__right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .topnav__avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+      border: 2px solid var(--glass-border); display: flex; align-items: center;
+      justify-content: center; font-weight: 700; font-size: 13px;
+      cursor: pointer; transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .topnav__avatar:hover { transform: scale(1.08); box-shadow: var(--shadow-glow-purple); }
+    .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; border-radius: 9px; font-size: 10px; font-weight: 700;
+      padding: 0 5px;
+    }
+    .badge--purple { background: var(--accent-purple); color: white; }
+    .badge--green  { background: var(--accent-green);  color: white; }
+
+    /* ============================================================
+       MAIN GRID
+    ============================================================ */
+    .main {
+      flex: 1; display: grid;
+      grid-template-columns: 260px 1fr 320px;
+      grid-template-rows: auto;
+      gap: 0;
+      max-width: 1440px; margin: 0 auto; width: 100%;
+      padding: 24px 20px;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 1200px) {
+      .main { grid-template-columns: 240px 1fr; }
+      .sidebar-right { display: none; }
+    }
+    @media (max-width: 820px) {
+      .main { grid-template-columns: 1fr; }
+      .sidebar-left { display: none; }
+    }
+
+    /* ============================================================
+       GLASS CARD
+    ============================================================ */
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-card);
+      transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+      overflow: hidden;
+    }
+    .card:hover {
+      border-color: rgba(255,255,255,0.13);
+      box-shadow: var(--shadow-card), 0 0 0 1px rgba(139,92,246,0.1);
+      transform: translateY(-1px);
+    }
+    .card__header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 18px 0;
+    }
+    .card__title {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text-secondary);
+    }
+    .card__body { padding: 16px 18px; }
+
+    /* ============================================================
+       LEFT SIDEBAR — Profile
+    ============================================================ */
+    .sidebar-left { display: flex; flex-direction: column; gap: 16px; }
+
+    .profile-card { text-align: center; padding: 24px 18px 20px; }
+    .profile-avatar-wrap {
+      position: relative; display: inline-block; margin-bottom: 14px;
+    }
+    .profile-avatar {
+      width: 88px; height: 88px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue), var(--accent-cyan));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; font-weight: 800; border: 3px solid transparent;
+      background-clip: padding-box;
+      position: relative; z-index: 1;
+    }
+    .profile-avatar::before {
+      content: ''; position: absolute; inset: -3px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+      z-index: -1;
+    }
+    .profile-status {
+      position: absolute; bottom: 4px; right: 4px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent-green); border: 2px solid var(--bg-base);
+    }
+    .profile-name { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+    .profile-username { font-size: 13px; color: var(--accent-purple); margin-bottom: 8px; }
+    .profile-bio { font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px; }
+    .profile-btn {
+      display: block; width: 100%; padding: 8px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+      border: none; border-radius: 8px; color: white; font-size: 13px;
+      font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition);
+    }
+    .profile-btn:hover {
+      opacity: 0.9; transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(139,92,246,0.4);
+    }
+
+    .profile-stats {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1px; background: var(--glass-border);
+      border-radius: 10px; overflow: hidden; margin-top: 16px;
+    }
+    .profile-stat {
+      background: rgba(13,17,23,0.6); padding: 12px 8px; text-align: center;
+      transition: background var(--transition);
+    }
+    .profile-stat:hover { background: rgba(139,92,246,0.08); }
+    .profile-stat__num { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+    .profile-stat__lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+    /* Skills */
+    .skills-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .skill-tag {
+      padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500;
+      border: 1px solid transparent; transition: all var(--transition); cursor: default;
+    }
+    .skill-tag:hover { transform: scale(1.05); }
+    .skill-tag--purple { background: rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.3); color: var(--accent-purple); }
+    .skill-tag--blue   { background: rgba(59,130,246,0.15);  border-color: rgba(59,130,246,0.3);  color: var(--accent-blue); }
+    .skill-tag--cyan   { background: rgba(6,182,212,0.15);   border-color: rgba(6,182,212,0.3);   color: var(--accent-cyan); }
+    .skill-tag--green  { background: rgba(34,197,94,0.15);   border-color: rgba(34,197,94,0.3);   color: var(--accent-green); }
+    .skill-tag--orange { background: rgba(249,115,22,0.15);  border-color: rgba(249,115,22,0.3);  color: var(--accent-orange); }
+
+    /* Mini Calendar / Heatmap Row */
+    .streak-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px; gap: 12px;
+    }
+    .streak-item { text-align: center; }
+    .streak-item__num { font-size: 22px; font-weight: 800; }
+    .streak-item__lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .streak-divider { width: 1px; height: 40px; background: var(--glass-border); }
+    .streak-fire { font-size: 20px; }
+
+    /* ============================================================
+       CENTER COLUMN
+    ============================================================ */
+    .center-col { display: flex; flex-direction: column; gap: 20px; }
+
+    /* ---- Hero Stats Row ---- */
+    .hero-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    }
+    @media (max-width: 900px) { .hero-stats { grid-template-columns: repeat(2,1fr); } }
+    .stat-chip {
+      padding: 16px 18px; display: flex; align-items: flex-start; gap: 12px;
+    }
+    .stat-chip__icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .stat-chip__icon--purple { background: rgba(139,92,246,0.15); }
+    .stat-chip__icon--blue   { background: rgba(59,130,246,0.15); }
+    .stat-chip__icon--green  { background: rgba(34,197,94,0.15); }
+    .stat-chip__icon--orange { background: rgba(249,115,22,0.15); }
+    .stat-chip__val { font-size: 24px; font-weight: 800; line-height: 1; }
+    .stat-chip__lbl { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+    .stat-chip__delta { font-size: 10px; margin-top: 4px; }
+    .delta-up   { color: var(--accent-green); }
+    .delta-down { color: var(--accent-red); }
+
+    /* ---- Contribution Graph ---- */
+    .contrib-graph { padding: 18px; }
+    .contrib-graph__header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+    }
+    .contrib-graph__title { font-size: 14px; font-weight: 600; }
+    .contrib-graph__count { font-size: 12px; color: var(--text-secondary); }
+    .contrib-graph__count span { color: var(--accent-purple); font-weight: 700; }
+
+    /* Heatmap */
+    .heatmap { display: flex; gap: 3px; overflow-x: auto; padding-bottom: 4px; }
+    .heatmap::-webkit-scrollbar { height: 4px; }
+    .heatmap::-webkit-scrollbar-track { background: transparent; }
+    .heatmap::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+    .heatmap__col { display: flex; flex-direction: column; gap: 3px; }
+    .heatmap__cell {
+      width: 12px; height: 12px; border-radius: 2px;
+      transition: transform 0.15s, filter 0.15s;
+      cursor: pointer; background: var(--bg-layer3);
+    }
+    .heatmap__cell:hover { transform: scale(1.4); filter: brightness(1.4); z-index: 10; position: relative; }
+    .heatmap__cell.l1 { background: rgba(139,92,246,0.25); }
+    .heatmap__cell.l2 { background: rgba(139,92,246,0.45); }
+    .heatmap__cell.l3 { background: rgba(139,92,246,0.70); }
+    .heatmap__cell.l4 { background: var(--accent-purple); }
+    .heatmap__legend {
+      display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 10px;
+      color: var(--text-muted); justify-content: flex-end;
+    }
+    .heatmap__legend-cell {
+      width: 10px; height: 10px; border-radius: 2px;
+    }
+
+    /* ---- Month Labels ---- */
+    .month-labels {
+      display: flex; gap: 3px; margin-bottom: 4px; padding: 0;
+    }
+    .month-label {
+      font-size: 10px; color: var(--text-muted); min-width: 12px; text-align: left;
+    }
+
+    /* ---- Pinned Repos ---- */
+    .repos-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    @media (max-width: 680px) { .repos-grid { grid-template-columns: 1fr; } }
+    .repo-card {
+      padding: 16px; display: flex; flex-direction: column; gap: 10px;
+      cursor: pointer;
+    }
+    .repo-card__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .repo-card__name {
+      font-size: 14px; font-weight: 600; color: var(--accent-blue);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .repo-card__name:hover { color: var(--accent-purple); }
+    .repo-card__vis {
+      font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 500;
+      border: 1px solid; flex-shrink: 0;
+    }
+    .repo-card__vis--public  { color: var(--accent-green); border-color: rgba(34,197,94,0.4);   background: rgba(34,197,94,0.08); }
+    .repo-card__vis--private { color: var(--accent-orange); border-color: rgba(249,115,22,0.4); background: rgba(249,115,22,0.08); }
+    .repo-card__desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; flex: 1; }
+    .repo-card__meta { display: flex; align-items: center; gap: 14px; }
+    .repo-meta-item {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--text-muted);
+    }
+    .lang-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .lang-js     { background: #f7df1e; }
+    .lang-ts     { background: #3178c6; }
+    .lang-py     { background: #3572A5; }
+    .lang-v      { background: #b2b7f8; }
+    .lang-go     { background: #00ADD8; }
+    .lang-rust   { background: #dea584; }
+    .lang-html   { background: #e34c26; }
+
+    .repo-card__progress { height: 3px; border-radius: 2px; background: var(--bg-layer3); overflow: hidden; }
+    .repo-card__progress-fill {
+      height: 100%; border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue));
+      transition: width 1s ease;
+    }
+
+    /* ---- Activity Feed ---- */
+    .activity-feed { display: flex; flex-direction: column; gap: 0; }
+    .activity-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background var(--transition);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-item:hover { background: var(--glass-hover); }
+    .activity-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0; margin-top: 2px;
+    }
+    .activity-icon--merge  { background: rgba(139,92,246,0.15); }
+    .activity-icon--push   { background: rgba(34,197,94,0.15); }
+    .activity-icon--star   { background: rgba(234,179,8,0.15); }
+    .activity-icon--issue  { background: rgba(239,68,68,0.15); }
+    .activity-icon--fork   { background: rgba(59,130,246,0.15); }
+    .activity-icon--pr     { background: rgba(236,72,153,0.15); }
+    .activity-icon--review { background: rgba(6,182,212,0.15); }
+    .activity-body { flex: 1; min-width: 0; }
+    .activity-title { font-size: 13px; line-height: 1.4; }
+    .activity-title a { color: var(--accent-blue); text-decoration: none; font-weight: 500; }
+    .activity-title a:hover { color: var(--accent-purple); text-decoration: underline; }
+    .activity-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+    .activity-time { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+
+    /* Tactical Terminal */
+    .terminal {
+      background: rgba(5, 8, 12, 0.9);
+      border: 1px solid var(--accent-purple);
+      border-radius: 12px;
+      padding: 15px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+      min-height: 180px;
+      position: relative;
+      overflow: hidden;
+    }
+    .terminal-header {
+      display: flex; gap: 6px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;
+    }
+    .terminal-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .red { background: #ff5f56; } .yellow { background: #ffbd2e; } .green { background: #27c93f; }
+    .terminal-line { margin-bottom: 4px; opacity: 0; animation: typeIn 0.1s forwards; }
+    @keyframes typeIn { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: translateX(0); } }
+    .terminal-prompt { color: var(--accent-purple); font-weight: bold; }
+    .terminal-cursor { display: inline-block; width: 7px; height: 14px; background: var(--accent-cyan); animation: blink 1s infinite; vertical-align: middle; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* ============================================================
+       RIGHT SIDEBAR
+    ============================================================ */
+    .sidebar-right { display: flex; flex-direction: column; gap: 16px; }
+
+    /* PR / Issue Tracker */
+    .pr-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background var(--transition); cursor: pointer;
+    }
+    .pr-item:last-child { border-bottom: none; }
+    .pr-item:hover { background: var(--glass-hover); }
+    .pr-status {
+      width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0;
+    }
+    .pr-status--open    { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+    .pr-status--merged  { background: var(--accent-purple); box-shadow: 0 0 6px var(--accent-purple); }
+    .pr-status--closed  { background: var(--accent-red); box-shadow: 0 0 6px var(--accent-red); }
+    .pr-status--draft   { background: var(--text-muted); }
+    .pr-body { flex: 1; min-width: 0; }
+    .pr-title { font-size: 12px; font-weight: 500; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pr-meta  { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+    .pr-label {
+      display: inline-flex; padding: 2px 7px; border-radius: 20px;
+      font-size: 10px; font-weight: 600; margin-top: 4px;
+    }
+    .pr-label--review { background: rgba(234,179,8,0.2); color: var(--accent-yellow); }
+    .pr-label--merged { background: rgba(139,92,246,0.2); color: var(--accent-purple); }
+    .pr-label--bug    { background: rgba(239,68,68,0.2);  color: var(--accent-red); }
+    .pr-label--feat   { background: rgba(34,197,94,0.2);  color: var(--accent-green); }
+
+    /* Language Distribution */
+    .lang-bar {
+      height: 8px; border-radius: 4px; overflow: hidden;
+      display: flex; gap: 2px; margin: 12px 16px 8px;
+    }
+    .lang-bar__seg {
+      height: 100%; border-radius: 4px;
+      transition: flex var(--transition);
+    }
+    .lang-list { padding: 0 16px 14px; display: flex; flex-direction: column; gap: 8px; }
+    .lang-row  { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .lang-row__name  { flex: 1; color: var(--text-secondary); }
+    .lang-row__pct   { color: var(--text-muted); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+    .lang-row__dot   { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* Quick Actions */
+    .quick-actions {
+      padding: 14px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .qa-btn {
+      display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: 10px; font-size: 12px; font-weight: 500; color: var(--text-secondary);
+      cursor: pointer; transition: all var(--transition); font-family: inherit;
+    }
+    .qa-btn:hover { background: var(--glass-hover); color: var(--text-primary); border-color: rgba(139,92,246,0.4); transform: translateY(-1px); }
+    .qa-btn .icon { font-size: 16px; }
+
+    /* Trending Repos */
+    .trending-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+      cursor: pointer; transition: background var(--transition);
+    }
+    .trending-item:last-child { border-bottom: none; }
+    .trending-item:hover { background: var(--glass-hover); }
+    .trending-rank { font-size: 14px; font-weight: 700; color: var(--text-muted); min-width: 20px; }
+    .trending-info { flex: 1; min-width: 0; }
+    .trending-name { font-size: 12px; font-weight: 600; color: var(--accent-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .trending-desc { font-size: 11px; color: var(--text-muted); }
+    .trending-stars { font-size: 11px; color: var(--accent-yellow); display: flex; align-items: center; gap: 3px; }
+
+    /* Notifications badge */
+    .notif-btn {
+      position: relative; background: none; border: none; cursor: pointer;
+      color: var(--text-secondary); display: flex; align-items: center;
+      transition: color var(--transition);
+    }
+    .notif-btn:hover { color: var(--text-primary); }
+    .notif-btn__dot {
+      position: absolute; top: 0; right: 0; width: 8px; height: 8px;
+      border-radius: 50%; background: var(--accent-red); border: 1.5px solid var(--bg-base);
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.7; }
+    }
+
+    /* CI/CD Status */
+    .ci-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background var(--transition); cursor: pointer;
+    }
+    .ci-row:last-child { border-bottom: none; }
+    .ci-row:hover { background: var(--glass-hover); }
+    .ci-row__info { display: flex; align-items: center; gap: 8px; }
+    .ci-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .ci-dot--pass   { background: var(--accent-green); animation: pulse-green 2.5s infinite; }
+    .ci-dot--fail   { background: var(--accent-red); }
+    .ci-dot--run    { background: var(--accent-yellow); animation: pulse-green 1.2s infinite; }
+    .ci-dot--skip   { background: var(--text-muted); }
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+      50% { box-shadow: 0 0 0 3px transparent; }
+    }
+    .ci-name { font-size: 12px; font-weight: 500; }
+    .ci-branch { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .ci-duration { font-size: 11px; color: var(--text-muted); }
+
+    /* ============================================================
+       SCROLLBAR
+    ============================================================ */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
+
+    /* ============================================================
+       TOOLTIP
+    ============================================================ */
+    [data-tip] { position: relative; }
+    [data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+      background: var(--bg-layer2); border: 1px solid var(--glass-border);
+      color: var(--text-primary); font-size: 11px; padding: 4px 10px;
+      border-radius: 6px; white-space: nowrap; pointer-events: none; z-index: 1000;
+    }
+
+    /* ============================================================
+       ANIMATIONS
+    ============================================================ */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeInUp 0.5s ease both; }
+    .fade-in:nth-child(1) { animation-delay: 0.05s; }
+    .fade-in:nth-child(2) { animation-delay: 0.10s; }
+    .fade-in:nth-child(3) { animation-delay: 0.15s; }
+    .fade-in:nth-child(4) { animation-delay: 0.20s; }
+    .fade-in:nth-child(5) { animation-delay: 0.25s; }
+    .fade-in:nth-child(6) { animation-delay: 0.30s; }
+
+    /* Section label */
+    .section-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--text-muted); padding: 0 18px 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .section-label::before {
+      content: ''; flex: 1; height: 1px; background: var(--glass-border);
+    }
+
+    /* Link */
+    .link { color: var(--accent-blue); text-decoration: none; }
+    .link:hover { color: var(--accent-purple); text-decoration: underline; }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    .footer {
+      text-align: center; padding: 16px; font-size: 11px;
+      color: var(--text-muted); border-top: 1px solid var(--glass-border);
+    }
+    .footer span { color: var(--accent-purple); }
+  </style>
+</head>
+<body>
+
+<!-- ===== AURORA ===== -->
+<div class="aurora" aria-hidden="true">
+  <div class="aurora__blob"></div>
+  <div class="aurora__blob"></div>
+  <div class="aurora__blob"></div>
+</div>
+
+<div class="app">
+
+  <!-- ===== TOP NAV ===== -->
+  <nav class="topnav">
+    <a href="#" class="topnav__logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z"/>
+      </svg>
+      GitHub Pro
+    </a>
+
+    <div class="topnav__search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);flex-shrink:0">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" placeholder="Search repositories, issues, PRs…" id="searchInput" />
+    </div>
+
+    <div class="topnav__tabs">
+      <button class="topnav__tab active" id="tab-dash" onclick="switchTab('dash')">Dashboard</button>
+      <button class="topnav__tab" id="tab-repos" onclick="switchTab('repos')">Repos</button>
+      <button class="topnav__tab" id="tab-prs"   onclick="switchTab('prs')">PRs</button>
+      <button class="topnav__tab" id="tab-issues" onclick="switchTab('issues')">Issues</button>
+    </div>
+
+    <div class="topnav__right">
+      <button class="notif-btn" data-tip="3 notifications">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span class="notif-btn__dot"></span>
+      </button>
+      <div class="topnav__avatar" data-tip="Saurav">S</div>
+    </div>
+  </nav>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+
+    <!-- ========== LEFT SIDEBAR ========== -->
+    <aside class="sidebar-left">
+
+      <!-- Profile Card -->
+      <div class="card profile-card fade-in">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar">S</div>
+          <div class="profile-status" data-tip="Available"></div>
+        </div>
+        <div class="profile-name">Saurav</div>
+        <div class="profile-username">@saurav-dev</div>
+        <div class="profile-bio">Full-Stack Architect · AI/Security Engineer · OSS enthusiast. Building the future, one commit at a time. 🚀</div>
+        <button class="profile-btn">✏️ Edit Profile</button>
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <div class="profile-stat__num" id="stat-repos">24</div>
+            <div class="profile-stat__lbl">Repos</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat__num" id="stat-stars">186</div>
+            <div class="profile-stat__lbl">Stars</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat__num" id="stat-followers">312</div>
+            <div class="profile-stat__lbl">Followers</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat__num" id="stat-following">89</div>
+            <div class="profile-stat__lbl">Following</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streak Card -->
+      <div class="card fade-in">
+        <div class="streak-row">
+          <div class="streak-item">
+            <div class="streak-item__num" style="color:var(--accent-orange)">🔥 28</div>
+            <div class="streak-item__lbl">Day Streak</div>
+          </div>
+          <div class="streak-divider"></div>
+          <div class="streak-item">
+            <div class="streak-item__num" style="color:var(--accent-purple)">1,247</div>
+            <div class="streak-item__lbl">This Year</div>
+          </div>
+          <div class="streak-divider"></div>
+          <div class="streak-item">
+            <div class="streak-item__num" style="color:var(--accent-green)">14</div>
+            <div class="streak-item__lbl">This Week</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skills -->
+      <div class="card fade-in">
+        <div class="card__header"><span class="card__title">🛠 Skills & Stack</span></div>
+        <div class="card__body">
+          <div class="skills-list">
+            <span class="skill-tag skill-tag--blue">TypeScript</span>
+            <span class="skill-tag skill-tag--cyan">React</span>
+            <span class="skill-tag skill-tag--green">Node.js</span>
+            <span class="skill-tag skill-tag--purple">AI/ML</span>
+            <span class="skill-tag skill-tag--orange">Security</span>
+            <span class="skill-tag skill-tag--blue">Go</span>
+            <span class="skill-tag skill-tag--cyan">Docker</span>
+            <span class="skill-tag skill-tag--green">Python</span>
+            <span class="skill-tag skill-tag--purple">Verilog</span>
+            <span class="skill-tag skill-tag--orange">Kubernetes</span>
+            <span class="skill-tag skill-tag--blue">Rust</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card fade-in">
+        <div class="card__header"><span class="card__title">⚡ Quick Actions</span></div>
+        <div class="quick-actions">
+          <button class="qa-btn"><span class="icon">📁</span> New Repo</button>
+          <button class="qa-btn"><span class="icon">🔀</span> New PR</button>
+          <button class="qa-btn"><span class="icon">🐛</span> New Issue</button>
+          <button class="qa-btn"><span class="icon">🌿</span> New Branch</button>
+          <button class="qa-btn"><span class="icon">🔑</span> API Keys</button>
+          <button class="qa-btn"><span class="icon">📊</span> Insights</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ========== CENTER ========== -->
+    <div class="center-col">
+
+      <!-- Hero Stats -->
+      <div class="hero-stats">
+        <div class="card stat-chip fade-in">
+          <div class="stat-chip__icon stat-chip__icon--purple">🔀</div>
+          <div>
+            <div class="stat-chip__val">42</div>
+            <div class="stat-chip__lbl">Open Pull Requests</div>
+            <div class="stat-chip__delta delta-up">▲ 8 this week</div>
+          </div>
+        </div>
+        <div class="card stat-chip fade-in">
+          <div class="stat-chip__icon stat-chip__icon--green">✅</div>
+          <div>
+            <div class="stat-chip__val">189</div>
+            <div class="stat-chip__lbl">Commits This Month</div>
+            <div class="stat-chip__delta delta-up">▲ 23% vs last month</div>
+          </div>
+        </div>
+        <div class="card stat-chip fade-in">
+          <div class="stat-chip__icon stat-chip__icon--orange">🐛</div>
+          <div>
+            <div class="stat-chip__val">17</div>
+            <div class="stat-chip__lbl">Open Issues</div>
+            <div class="stat-chip__delta delta-down">▼ 5 closed today</div>
+          </div>
+        </div>
+        <div class="card stat-chip fade-in">
+          <div class="stat-chip__icon stat-chip__icon--blue">⭐</div>
+          <div>
+            <div class="stat-chip__val">186</div>
+            <div class="stat-chip__lbl">Total Stars</div>
+            <div class="stat-chip__delta delta-up">▲ 12 new</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contribution Graph -->
+      <div class="card fade-in">
+        <div class="card__header">
+          <span class="card__title">📅 Contribution Graph</span>
+          <span class="contrib-graph__count"><span id="contrib-count">1,247</span> contributions in the last year</span>
+        </div>
+        <div class="contrib-graph">
+          <div class="month-labels" id="monthLabels"></div>
+          <div class="heatmap" id="heatmap"></div>
+          <div class="heatmap__legend">
+            Less
+            <div class="heatmap__legend-cell" style="background:var(--bg-layer3)"></div>
+            <div class="heatmap__legend-cell l1"></div>
+            <div class="heatmap__legend-cell l2"></div>
+            <div class="heatmap__legend-cell l3"></div>
+            <div class="heatmap__legend-cell l4"></div>
+            More
+          </div>
+        </div>
+      </div>
+
+      <!-- Pinned Repos -->
+      <div class="card fade-in">
+        <div class="card__header">
+          <span class="card__title">📌 Pinned Repositories</span>
+          <a href="#" class="link" style="font-size:12px">Customize →</a>
+        </div>
+        <div class="card__body" style="padding-top:12px">
+          <div class="repos-grid" id="reposGrid"></div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="card fade-in">
+        <div class="card__header">
+          <span class="card__title">⚡ Recent Activity</span>
+          <a href="#" class="link" style="font-size:12px">View all →</a>
+        </div>
+        <div class="activity-feed" id="activityFeed"></div>
+      </div>
+
+      <!-- Tactical Command Center -->
+      <div class="card fade-in">
+        <div class="card__header"><span class="card__title">📡 Tactical Command Center</span></div>
+        <div class="card__body">
+            <div class="terminal" id="terminal">
+                <div class="terminal-header">
+                    <div class="terminal-dot red"></div>
+                    <div class="terminal-dot yellow"></div>
+                    <div class="terminal-dot green"></div>
+                    <span style="font-size: 10px; color: var(--text-muted); margin-left: 10px;">cytrack_node_01.sh</span>
+                </div>
+                <div id="terminalBody"></div>
+                <span class="terminal-cursor"></span>
+            </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========== RIGHT SIDEBAR ========== -->
+    <aside class="sidebar-right">
+
+      <!-- CI/CD Status -->
+      <div class="card fade-in">
+        <div class="card__header"><span class="card__title">🚀 CI / CD Status</span></div>
+        <div id="ciList"></div>
+      </div>
+
+      <!-- CTF Stats -->
+      <div class="card fade-in">
+        <div class="card__header">
+          <span class="card__title">⚔️ CTF Records</span>
+          <span class="badge badge--purple">Rank #842</span>
+        </div>
+        <div class="card__body">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div class="row" style="display:flex; justify-content:space-between; font-size:12px;">
+                    <span style="color:var(--text-secondary)">Global Points</span>
+                    <span style="color:var(--accent-purple); font-weight:bold;">124,500</span>
+                </div>
+                <div class="row" style="display:flex; justify-content:space-between; font-size:12px;">
+                    <span style="color:var(--text-secondary)">First Bloods</span>
+                    <span style="color:var(--accent-red); font-weight:bold;">14</span>
+                </div>
+                <div class="row" style="display:flex; justify-content:space-between; font-size:12px;">
+                    <span style="color:var(--text-secondary)">Events Won</span>
+                    <span style="color:var(--accent-green); font-weight:bold;">3</span>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- Open PRs -->
+      <div class="card fade-in">
+        <div class="card__header">
+          <span class="card__title">🔀 Pull Requests</span>
+          <span class="badge badge--green">6 open</span>
+        </div>
+        <div id="prList"></div>
+      </div>
+
+      <!-- Language Distribution -->
+      <div class="card fade-in">
+        <div class="card__header"><span class="card__title">🧬 Languages</span></div>
+        <div class="lang-bar" id="langBar"></div>
+        <div class="lang-list" id="langList"></div>
+      </div>
+
+      <!-- Trending Today -->
+      <div class="card fade-in">
+        <div class="card__header">
+          <span class="card__title">🔥 Trending Today</span>
+          <a href="#" class="link" style="font-size:11px">GitHub →</a>
+        </div>
+        <div id="trendingList"></div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <footer class="footer">
+    Built with <span>♥</span> by Saurav · GitHub Dashboard Pro · 2026
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   DATA
+============================================================ */
+const repos = [
+  { name: "agent-orchestrator", desc: "Autonomous AI agent platform with hierarchical task delegation and real-time dashboard.", lang: "TypeScript", langClass: "lang-ts", stars: 48, forks: 12, vis: "private", progress: 80 },
+  { name: "bizpulse",           desc: "AI-driven business health analysis SaaS for Indian SMBs with PDF reporting.", lang: "JavaScript", langClass: "lang-js", stars: 31, forks: 7, vis: "public",  progress: 65 },
+  { name: "cyber-agent",        desc: "Offensive security scanner with deterministic proof-based vulnerability validation.", lang: "TypeScript", langClass: "lang-ts", stars: 62, forks: 21, vis: "private", progress: 55 },
+  { name: "alarm-clock-verilog",desc: "Professional 10/10 RTL alarm clock with Moore FSM, multiple alarm slots & snooze.", lang: "Verilog",    langClass: "lang-v",  stars: 19, forks: 4,  vis: "public",  progress: 90 },
+  { name: "cyber-agent-py",     desc: "Python port of NEXUS cyber engine — autonomous pentesting with AI planning.", lang: "Python",     langClass: "lang-py", stars: 27, forks: 8,  vis: "private", progress: 45 },
+  { name: "resume",             desc: "Professional portfolio & resume site with animated UI and project showcase.", lang: "HTML",       langClass: "lang-html",stars: 9,  forks: 2,  vis: "public",  progress: 100 },
+];
+
+const activities = [
+  { icon: "🔀", type: "merge",  title: 'Merged PR <a href="#" class="link">#142 — Add autonomous hiring workflow</a> in <a href="#" class="link">agent-orchestrator</a>',   meta: "2 hours ago", time: "2h" },
+  { icon: "📤", type: "push",   title: 'Pushed 3 commits to <a href="#" class="link">bizpulse/main</a> — Refactor analysis pipeline',                                        meta: "4 hours ago", time: "4h" },
+  { icon: "⭐", type: "star",   title: 'Starred <a href="#" class="link">microsoft/playwright</a>',                                                                           meta: "6 hours ago", time: "6h" },
+  { icon: "🐛", type: "issue",  title: 'Opened issue <a href="#" class="link">#88 — JWT refresh logic race condition</a> in <a href="#" class="link">cyber-agent</a>',        meta: "Yesterday",   time: "1d" },
+  { icon: "🔀", type: "pr",     title: 'Opened PR <a href="#" class="link">#23 — Isometric contribution graph widget</a>',                                                    meta: "Yesterday",   time: "1d" },
+  { icon: "🍴", type: "fork",   title: 'Forked <a href="#" class="link">langchain-ai/langchain</a>',                                                                          meta: "2 days ago",  time: "2d" },
+  { icon: "👀", type: "review", title: 'Reviewed PR <a href="#" class="link">#17 — Security hardening in BizPulse worker</a>',                                               meta: "3 days ago",  time: "3d" },
+  { icon: "📤", type: "push",   title: 'Pushed 7 commits to <a href="#" class="link">alarm-clock-verilog/main</a> — Moore FSM complete',                                      meta: "4 days ago",  time: "4d" },
+];
+
+const pulls = [
+  { title: "#142 Add autonomous hiring workflow",         status: "merged", label: "merged", meta: "agent-orchestrator · 2h ago" },
+  { title: "#23 Isometric contribution graph widget",     status: "open",   label: "review", meta: "github-dashboard · 1d ago" },
+  { title: "#18 Fix JWT refresh race condition",          status: "open",   label: "bug",    meta: "cyber-agent · 2d ago" },
+  { title: "#11 AI report PDF template redesign",         status: "open",   label: "feat",   meta: "bizpulse · 3d ago" },
+  { title: "#8 Add snooze & multi-alarm RTL slots",       status: "merged", label: "merged", meta: "alarm-clock-verilog · 4d ago" },
+  { title: "#3 Initial NEXUS pentest framework",          status: "open",   label: "feat",   meta: "cyber-agent-py · 5d ago" },
+];
+
+const languages = [
+  { name: "TypeScript", pct: 42, color: "#3178c6" },
+  { name: "Python",     pct: 22, color: "#3572A5" },
+  { name: "JavaScript", pct: 18, color: "#f7df1e" },
+  { name: "Verilog",    pct:  8, color: "#b2b7f8" },
+  { name: "HTML/CSS",   pct:  7, color: "#e34c26" },
+  { name: "Other",      pct:  3, color: "#8b949e" },
+];
+
+const ciBuilds = [
+  { name: "agent-orchestrator",   branch: "main",   status: "pass", dur: "2m 14s" },
+  { name: "bizpulse",             branch: "main",   status: "pass", dur: "1m 48s" },
+  { name: "cyber-agent",          branch: "feature/jwt-fix", status: "run", dur: "Running…" },
+  { name: "alarm-clock-verilog",  branch: "main",   status: "pass", dur: "0m 52s" },
+  { name: "cyber-agent-py",       branch: "dev",    status: "fail", dur: "3m 01s" },
+];
+
+const trending = [
+  { rank: "1", name: "google/gemini-cli",        desc: "Gemini-powered developer CLI", stars: "892" },
+  { rank: "2", name: "microsoft/TypeScript",     desc: "TypeScript language superset", stars: "761" },
+  { rank: "3", name: "langchain-ai/langchain",   desc: "LLM application framework",    stars: "643" },
+  { rank: "4", name: "facebook/react",           desc: "Component-based UI library",   stars: "581" },
+  { rank: "5", name: "vercel/next.js",           desc: "The React Framework",          stars: "509" },
+];
+
+/* ============================================================
+   RENDER — REPOS
+============================================================ */
+const iconMap = { TypeScript: "📘", JavaScript: "⚡", Python: "🐍", Verilog: "🔬", HTML: "🌐", Go: "🐹", Rust: "⚙️" };
+
+document.getElementById("reposGrid").innerHTML = repos.map(r => `
+  <div class="card repo-card" onclick="void(0)">
+    <div class="repo-card__header">
+      <div class="repo-card__name">${iconMap[r.lang] || "📁"} ${r.name}</div>
+      <span class="repo-card__vis repo-card__vis--${r.vis}">${r.vis}</span>
+    </div>
+    <div class="repo-card__desc">${r.desc}</div>
+    <div class="repo-card__progress">
+      <div class="repo-card__progress-fill" style="width:0%" data-target="${r.progress}"></div>
+    </div>
+    <div class="repo-card__meta">
+      <span class="repo-meta-item"><span class="lang-dot ${r.langClass}"></span>${r.lang}</span>
+      <span class="repo-meta-item">⭐ ${r.stars}</span>
+      <span class="repo-meta-item">🍴 ${r.forks}</span>
+    </div>
+  </div>
+`).join('');
+
+/* ============================================================
+   RENDER — ACTIVITY
+============================================================ */
+const typeClass = { merge:"merge", push:"push", star:"star", issue:"issue", fork:"fork", pr:"pr", review:"review" };
+
+document.getElementById("activityFeed").innerHTML = activities.map(a => `
+  <div class="activity-item">
+    <div class="activity-icon activity-icon--${typeClass[a.type]}">${a.icon}</div>
+    <div class="activity-body">
+      <div class="activity-title">${a.title}</div>
+      <div class="activity-meta">${a.meta}</div>
+    </div>
+    <div class="activity-time">${a.time}</div>
+  </div>
+`).join('');
+
+/* ============================================================
+   RENDER — PRs
+============================================================ */
+document.getElementById("prList").innerHTML = pulls.map(p => `
+  <div class="pr-item">
+    <div class="pr-status pr-status--${p.status}"></div>
+    <div class="pr-body">
+      <div class="pr-title">${p.title}</div>
+      <div class="pr-meta">${p.meta}</div>
+      <span class="pr-label pr-label--${p.label}">${p.label}</span>
+    </div>
+  </div>
+`).join('');
+
+/* ============================================================
+   RENDER — LANGUAGES
+============================================================ */
+document.getElementById("langBar").innerHTML = languages.map(l =>
+  `<div class="lang-bar__seg" style="flex:${l.pct};background:${l.color}" data-tip="${l.name} ${l.pct}%"></div>`
+).join('');
+
+document.getElementById("langList").innerHTML = languages.map(l => `
+  <div class="lang-row">
+    <div class="lang-row__dot" style="background:${l.color}"></div>
+    <div class="lang-row__name">${l.name}</div>
+    <div class="lang-row__pct">${l.pct}%</div>
+  </div>
+`).join('');
+
+/* ============================================================
+   RENDER — CI/CD
+============================================================ */
+const ciLabel = { pass: "Passed", fail: "Failed", run: "Running", skip: "Skipped" };
+document.getElementById("ciList").innerHTML = ciBuilds.map(c => `
+  <div class="ci-row">
+    <div class="ci-row__info">
+      <div class="ci-dot ci-dot--${c.status}"></div>
+      <div>
+        <div class="ci-name">${c.name}</div>
+        <div class="ci-branch">${c.branch}</div>
+      </div>
+    </div>
+    <div class="ci-duration">${c.dur}</div>
+  </div>
+`).join('');
+
+/* ============================================================
+   RENDER — TRENDING
+============================================================ */
+document.getElementById("trendingList").innerHTML = trending.map(t => `
+  <div class="trending-item">
+    <div class="trending-rank">${t.rank}</div>
+    <div class="trending-info">
+      <div class="trending-name">${t.name}</div>
+      <div class="trending-desc">${t.desc}</div>
+    </div>
+    <div class="trending-stars">⭐ ${t.stars}</div>
+  </div>
+`).join('');
+
+/* ============================================================
+   CONTRIBUTION HEATMAP
+============================================================ */
+(function buildHeatmap() {
+  const heatmap = document.getElementById("heatmap");
+  const monthLabels = document.getElementById("monthLabels");
+  const WEEKS = 52;
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const weights = [0.3, 0.1, 0.15, 0.1, 0.15, 0.2]; // skewed to low
+
+  let totalContribs = 0;
+  let currentMonth = -1;
+  const monthLabelEls = Array.from({length: WEEKS}, () => {
+    const el = document.createElement("div");
+    el.className = "month-label";
+    el.style.flex = "0 0 15px";
+    el.textContent = "";
+    return el;
+  });
+
+  for (let w = 0; w < WEEKS; w++) {
+    const col = document.createElement("div");
+    col.className = "heatmap__col";
+
+    // Guess month for label
+    const dayOfYear = w * 7;
+    const approxMonth = Math.floor(dayOfYear / 30.44);
+    if (approxMonth !== currentMonth && approxMonth < 12) {
+      currentMonth = approxMonth;
+      monthLabelEls[w].textContent = months[currentMonth % 12];
+    }
+
+    for (let d = 0; d < 7; d++) {
+      const cell = document.createElement("div");
+      cell.className = "heatmap__cell";
+
+      // Weighted random level
+      const rand = Math.random();
+      let level = 0;
+      if (rand > 0.55) level = 1;
+      if (rand > 0.70) level = 2;
+      if (rand > 0.82) level = 3;
+      if (rand > 0.92) level = 4;
+
+      // Boost last 4 weeks (recent activity)
+      if (w > 47) {
+        if (rand > 0.3) level = Math.min(4, level + 1);
+      }
+
+      const count = level === 0 ? 0 : level === 1 ? Math.ceil(Math.random()*2) : level === 2 ? Math.ceil(Math.random()*5)+2 : level === 3 ? Math.ceil(Math.random()*8)+5 : Math.ceil(Math.random()*12)+10;
+      totalContribs += count;
+
+      if (level > 0) cell.classList.add(`l${level}`);
+      cell.dataset.tip = `${count} contributions`;
+      col.appendChild(cell);
+    }
+    heatmap.appendChild(col);
+    monthLabels.appendChild(monthLabelEls[w]);
+  }
+
+  document.getElementById("contrib-count").textContent = totalContribs.toLocaleString();
+})();
+
+/* ============================================================
+   ANIMATE PROGRESS BARS
+============================================================ */
+setTimeout(() => {
+  document.querySelectorAll(".repo-card__progress-fill").forEach(el => {
+    el.style.width = el.dataset.target + "%";
+  });
+}, 400);
+
+/* ============================================================
+   TAB SWITCHING (decorative)
+============================================================ */
+function switchTab(name) {
+  document.querySelectorAll(".topnav__tab").forEach(t => t.classList.remove("active"));
+  document.getElementById(`tab-${name}`).classList.add("active");
+}
+
+/* ============================================================
+   COUNTER ANIMATION
+============================================================ */
+function animateCount(el, target) {
+  let start = 0;
+  const dur = 1200;
+  const step = timestamp => {
+    if (!start) start = timestamp;
+    const prog = Math.min((timestamp - start) / dur, 1);
+    el.textContent = Math.round(prog * target);
+    if (prog < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+setTimeout(() => {
+  animateCount(document.getElementById("stat-repos"),     24);
+  animateCount(document.getElementById("stat-stars"),     186);
+  animateCount(document.getElementById("stat-followers"), 312);
+  animateCount(document.getElementById("stat-following"), 89);
+}, 300);
+
+/* ============================================================
+   SEARCH FILTER (live)
+============================================================ */
+document.getElementById("searchInput").addEventListener("input", function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll(".repo-card").forEach(card => {
+    card.style.display = card.textContent.toLowerCase().includes(q) ? "" : "none";
+  });
+});
+
+/* ============================================================
+   TERMINAL SIMULATION
+============================================================ */
+const terminalLines = [
+    '<span class="terminal-prompt">saurav@cytrack:~$</span> ./init_recon.sh --target delta-internal',
+    '[SYSTEM] Booting CyTrack core scanning engine...',
+    '[+] Initializing passive recon modules: [DONE]',
+    '[+] Loading Shodan search kernels: [DONE]',
+    '[+] Mapping subdomains for target: 114 found',
+    '[+] Scanning ports: 80, 443, 8080 open on 12 nodes',
+    '[ALERT] Potential IDOR detected in /api/v1/user/metadata',
+    '[SYSTEM] Launching autonomous fuzzer...',
+    '[+] Status: ACTIVE_MONITORING [Node-01]',
+    '<span class="terminal-prompt">saurav@cytrack:~$</span> <span style="color:var(--accent-green)">Analyzing impact... [98%]</span>'
+];
+
+let lineIndex = 0;
+const terminalBody = document.getElementById('terminalBody');
+
+function typeTerminal() {
+    if (lineIndex < terminalLines.length) {
+        const line = document.createElement('div');
+        line.className = 'terminal-line';
+        line.innerHTML = terminalLines[lineIndex];
+        terminalBody.appendChild(line);
+        lineIndex++;
+        
+        // Scroll to bottom
+        const term = document.getElementById('terminal');
+        term.scrollTop = term.scrollHeight;
+
+        setTimeout(typeTerminal, 1000 + Math.random() * 2000);
+    } else {
+        // Reset or wait
+        setTimeout(() => {
+            terminalBody.innerHTML = "";
+            lineIndex = 0;
+            typeTerminal();
+        }, 5000);
+    }
+}
+
+setTimeout(typeTerminal, 2000);
+</script>
+</body>
+</html>
