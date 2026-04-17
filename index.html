@@ -905,15 +905,45 @@ const repos = [
 ];
 
 /* ============================================================
-   DATA — LOGS
+   DATA — LIVE SYNC
 ============================================================ */
-const activities = [
-  { icon: "🛡️", type: "merge",  title: 'Optimized BullMQ worker for <span style="color:var(--accent-green)">BizPulse</span> report rendering',   meta: "2 hours ago", time: "2h" },
-  { icon: "📡", type: "push",   title: 'Integrated <span style="color:var(--accent-blue)">Hugging Face LLMs</span> into CodeAnalyzer pipeline',                                        meta: "4 hours ago", time: "4h" },
-  { icon: "🔑", type: "star",   title: 'Verified 100% state coverage for <span style="color:var(--accent-purple)">ChronoCore</span> FSM',                                            meta: "6 hours ago", time: "6h" },
-  { icon: "🚨", type: "issue",  title: 'HackenProof finding: <span style="color:var(--accent-red)">Hardcoded keys in ZetaChain</span> repo',        meta: "Yesterday",   time: "1d" },
-  { icon: "⚡", type: "pr",     title: 'Success: IIT Guwahati Cybersecurity Hackathon Finalist with <span style="color:var(--accent-cyan)">SecureMessageApp</span>',                                                    meta: "Yesterday",   time: "1d" },
-];
+async function fetchGithubActivity() {
+  const container = document.getElementById("activityFeed");
+  try {
+    const response = await fetch('https://api.github.com/users/Sk4saurav/events');
+    const events = await response.json();
+    if (!Array.isArray(events)) return;
+
+    const mapped = events.slice(0, 8).map(e => {
+      const repo = e.repo.name.split('/')[1];
+      let icon = "📡", type = "push", title = `Signal intercepted from ${repo}`;
+      
+      if (e.type === 'PushEvent') {
+        icon = "🛡️"; type = "push"; title = `Cipher injection complete in <span style="color:var(--accent-green)">${repo}</span>`;
+      } else if (e.type === 'WatchEvent') {
+        icon = "🔑"; type = "star"; title = `Credential acquired for target <span style="color:var(--accent-purple)">${repo}</span>`;
+      } else if (e.type === 'CreateEvent') {
+        icon = "⚡"; type = "pr"; title = `Initializing new node in <span style="color:var(--accent-cyan)">${repo}</span>`;
+      }
+      
+      return { icon, type, title, meta: new Date(e.created_at).toLocaleTimeString(), time: "LIVE" };
+    });
+
+    container.innerHTML = mapped.map(a => `
+      <div class="activity-item">
+        <div class="activity-icon activity-icon--${a.type}">${a.icon}</div>
+        <div class="activity-body">
+          <div class="activity-title">${a.title}</div>
+          <div class="activity-meta">${a.meta}</div>
+        </div>
+        <div class="activity-time">${a.time}</div>
+      </div>
+    `).join('');
+  } catch(e) { console.error("Sync failed", e); }
+}
+
+fetchGithubActivity();
+setInterval(fetchGithubActivity, 300000);
 
 /* ============================================================
    DATA — NODES
@@ -957,21 +987,7 @@ document.getElementById("reposGrid").innerHTML = repos.map(r => `
   </div>
 `).join('');
 
-/* ============================================================
-   RENDER — ACTIVITY
-============================================================ */
-const typeClass = { merge:"merge", push:"push", star:"star", issue:"issue", fork:"fork", pr:"pr", review:"review" };
-
-document.getElementById("activityFeed").innerHTML = activities.map(a => `
-  <div class="activity-item">
-    <div class="activity-icon activity-icon--${typeClass[a.type]}">${a.icon}</div>
-    <div class="activity-body">
-      <div class="activity-title">${a.title}</div>
-      <div class="activity-meta">${a.meta}</div>
-    </div>
-    <div class="activity-time">${a.time}</div>
-  </div>
-`).join('');
+// Live Sync Active
 
 /* ============================================================
    RENDER — PRs
