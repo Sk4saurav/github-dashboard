@@ -661,19 +661,15 @@
         <a href="https://www.linkedin.com/in/sk4saurav/" target="_blank" class="profile-btn">✏️ Edit Profile</a>
         <div class="profile-stats">
           <div class="profile-stat">
-            <div class="profile-stat__num" id="stat-repos">24</div>
+            <div class="profile-stat__num" id="stat-repos">--</div>
             <div class="profile-stat__lbl">Repos</div>
           </div>
           <div class="profile-stat">
-            <div class="profile-stat__num" id="stat-stars">186</div>
-            <div class="profile-stat__lbl">Stars</div>
-          </div>
-          <div class="profile-stat">
-            <div class="profile-stat__num" id="stat-followers">312</div>
+            <div class="profile-stat__num" id="stat-followers">--</div>
             <div class="profile-stat__lbl">Followers</div>
           </div>
           <div class="profile-stat">
-            <div class="profile-stat__num" id="stat-following">89</div>
+            <div class="profile-stat__num" id="stat-following">--</div>
             <div class="profile-stat__lbl">Following</div>
           </div>
         </div>
@@ -942,6 +938,17 @@ async function fetchGithubActivity() {
   } catch(e) { console.error("Sync failed", e); }
 }
 
+async function fetchUserStats() {
+  try {
+    const res = await fetch('https://api.github.com/users/Sk4saurav');
+    const data = await res.json();
+    document.getElementById('stat-repos').innerText = data.public_repos || 0;
+    document.getElementById('stat-followers').innerText = data.followers || 0;
+    document.getElementById('stat-following').innerText = data.following || 0;
+  } catch(e) { console.error("Stats sync failed", e); }
+}
+
+fetchUserStats();
 fetchGithubActivity();
 setInterval(fetchGithubActivity, 300000);
 
